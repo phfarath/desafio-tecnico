@@ -2,11 +2,13 @@ using ComprarProgramada.Domain.Interfaces;
 using ComprarProgramada.Domain.Interfaces.Repositories;
 using ComprarProgramada.Domain.Interfaces.Services;
 using ComprarProgramada.Infrastructure.Cotahist;
+using ComprarProgramada.Infrastructure.Messaging;
 using ComprarProgramada.Infrastructure.Persistence;
 using ComprarProgramada.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace ComprarProgramada.Infrastructure;
 
@@ -35,6 +37,10 @@ public static class DependencyInjection
 
         // Cotação (COTAHIST)
         services.AddSingleton<ICotacaoService, CotacaoService>();
+
+        // Kafka
+        services.Configure<KafkaSettings>(configuration.GetSection(KafkaSettings.SectionName));
+        services.AddSingleton<IEventPublisher, KafkaProducer>();
 
         // Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
