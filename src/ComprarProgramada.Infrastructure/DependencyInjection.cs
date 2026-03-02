@@ -1,5 +1,7 @@
 using ComprarProgramada.Domain.Interfaces;
 using ComprarProgramada.Domain.Interfaces.Repositories;
+using ComprarProgramada.Domain.Interfaces.Services;
+using ComprarProgramada.Infrastructure.Cotahist;
 using ComprarProgramada.Infrastructure.Persistence;
 using ComprarProgramada.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +32,9 @@ public static class DependencyInjection
                         maxRetryDelay: TimeSpan.FromSeconds(5),
                         errorNumbersToAdd: null);
                 }));
+
+        // Cotação (COTAHIST)
+        services.AddSingleton<ICotacaoService, CotacaoService>();
 
         // Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
