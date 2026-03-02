@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ComprarProgramada.API/ComprarProgramada.API.csproj" />
+    <Project Path="src/ComprarProgramada.Application/ComprarProgramada.Application.csproj" />
+    <Project Path="src/ComprarProgramada.Domain/ComprarProgramada.Domain.csproj" />
+    <Project Path="src/ComprarProgramada.Infrastructure/ComprarProgramada.Infrastructure.csproj" />
+    <Project Path="src/ComprarProgramada.Worker/ComprarProgramada.Worker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ComprarProgramada.IntegrationTests/ComprarProgramada.IntegrationTests.csproj" />
+    <Project Path="tests/ComprarProgramada.UnitTests/ComprarProgramada.UnitTests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,15 @@
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\bin\Debug\net10.0\ComprarProgramada.Application.deps.json
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\bin\Debug\net10.0\ComprarProgramada.Application.dll
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\bin\Debug\net10.0\ComprarProgramada.Application.pdb
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\bin\Debug\net10.0\ComprarProgramada.Domain.dll
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\bin\Debug\net10.0\ComprarProgramada.Domain.pdb
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\obj\Debug\net10.0\ComprarProgramada.Application.csproj.AssemblyReference.cache
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\obj\Debug\net10.0\ComprarProgramada.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\obj\Debug\net10.0\ComprarProgramada.Application.AssemblyInfoInputs.cache
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\obj\Debug\net10.0\ComprarProgramada.Application.AssemblyInfo.cs
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\obj\Debug\net10.0\ComprarProgramada.Application.csproj.CoreCompileInputs.cache
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\obj\Debug\net10.0\ComprarP.CFE2B810.Up2Date
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\obj\Debug\net10.0\ComprarProgramada.Application.dll
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\obj\Debug\net10.0\refint\ComprarProgramada.Application.dll
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\obj\Debug\net10.0\ComprarProgramada.Application.pdb
+C:\Dev\itau-desafio\compra-programada\src\ComprarProgramada.Application\obj\Debug\net10.0\ref\ComprarProgramada.Application.dll

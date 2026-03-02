@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "ComprarProgramada.Application/1.0.0": {
+        "dependencies": {
+          "ComprarProgramada.Domain": "1.0.0"
+        },
+        "runtime": {
+          "ComprarProgramada.Application.dll": {}
+        }
+      },
+      "ComprarProgramada.Domain/1.0.0": {
+        "runtime": {
+          "ComprarProgramada.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ComprarProgramada.Application/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ComprarProgramada.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
