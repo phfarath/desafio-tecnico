@@ -26,7 +26,8 @@ public sealed class ExceptionHandlerMiddleware(RequestDelegate next, ILogger<Exc
         var (status, title) = ex switch
         {
             DomainException       => (StatusCodes.Status400BadRequest, "Erro de domínio"),
-            InvalidOperationException { Message: var m } when m.Contains("já existe") || m.Contains("Já existe")
+            InvalidOperationException { Message: var m } when
+                m.Contains("já existe") || m.Contains("Já existe") || m.Contains("já cadastrado")
                                   => (StatusCodes.Status409Conflict, "Conflito"),
             InvalidOperationException => (StatusCodes.Status400BadRequest, "Operação inválida"),
             KeyNotFoundException  => (StatusCodes.Status404NotFound, "Não encontrado"),

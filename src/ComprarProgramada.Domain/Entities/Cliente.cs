@@ -65,7 +65,11 @@ public class Cliente : Entity
     public void AssociarContaFilhote(ContaFilhote conta)
     {
         if (ContaFilhote is not null)
+        {
+            // Idempotente: associar a mesma conta novamente é permitido
+            if (ReferenceEquals(ContaFilhote, conta)) return;
             throw new DomainException("Cliente já possui uma conta gráfica associada.");
+        }
 
         ContaFilhote = conta;
     }

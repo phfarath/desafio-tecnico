@@ -71,8 +71,10 @@ public sealed class RebalanceamentoService : IRebalanceamentoService
 
         foreach (var cliente in clientes)
         {
+            if (cliente.ContaFilhote is null) continue;
+
             var custodia = await _custodiasFilhote.ObterPorContaFilhoteAsync(
-                cliente.ContaFilhote!.Id, ct);
+                cliente.ContaFilhote.Id, ct);
 
             if (custodia is null) continue;
 
