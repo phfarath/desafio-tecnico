@@ -8,11 +8,16 @@ namespace ComprarProgramada.Application.Services;
 public sealed class CestaService : ICestaService
 {
     private readonly ICestaTopFiveRepository _cestas;
+    private readonly IRebalanceamentoService _rebalanceamento;
     private readonly IUnitOfWork _uow;
 
-    public CestaService(ICestaTopFiveRepository cestas, IUnitOfWork uow)
+    public CestaService(
+        ICestaTopFiveRepository cestas,
+        IRebalanceamentoService rebalanceamento,
+        IUnitOfWork uow)
     {
         _cestas = cestas;
+        _rebalanceamento = rebalanceamento;
         _uow = uow;
     }
 
@@ -28,6 +33,10 @@ public sealed class CestaService : ICestaService
         await _cestas.AdicionarAsync(novaCesta, ct);
 
         await _uow.CommitAsync(ct);
+
+        // Dispara rebalanceamento quando havia cesta anterior
+        if (cestaAtual is not null)
+            await _rebalanceamento.ExecutarAsync(cestaAtual.Id, novaCesta.Id, ct);
 
         return MapearParaResponse(novaCesta);
     }
