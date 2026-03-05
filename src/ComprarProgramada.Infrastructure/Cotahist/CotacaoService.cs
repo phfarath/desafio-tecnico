@@ -15,7 +15,7 @@ public sealed class CotacaoService : ICotacaoService
     private readonly string _cotacoesPathConfig;
     private readonly ILogger<CotacaoService> _logger;
 
-    // Cache: chave = "TICKER" (em maiúsculas), valor = preço de fechamento
+    // Cache: key = ticker (upper), value = close price
     private Dictionary<string, decimal>? _cache;
     private string? _cachedFile;
 
@@ -62,8 +62,6 @@ public sealed class CotacaoService : ICotacaoService
         return Task.FromResult<IDictionary<string, decimal>>(resultado);
     }
 
-    // -------------------------------------------------------------------------
-
     private Dictionary<string, decimal> ObterOuConstruirCache()
     {
         var arquivo = ObterArquivoMaisRecente();
@@ -72,10 +70,10 @@ public sealed class CotacaoService : ICotacaoService
         if (_cache is not null && _cachedFile == arquivo)
             return _cache;
 
-        _logger.LogInformation("Carregando cotações de {Arquivo}", arquivo);
+        _logger.LogInformation("Carregando cotacoes de {Arquivo}", arquivo);
 
         _cache = CotahistParser.Parse(arquivo)
-            .Where(c => c.TipoMercado == 10) // apenas mercado à vista para preço de referência
+            .Where(c => c.TipoMercado == 10) // spot market only
             .GroupBy(c => c.Ticker)
             .ToDictionary(g => g.Key, g => g.First().PrecoFechamento);
 
