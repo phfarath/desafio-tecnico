@@ -38,7 +38,7 @@ public class CestaControllerTests : IClassFixture<ApiFactory>
     [Fact]
     public async Task POST_CriarCesta_MenosDeCincoAtivos_DeveRetornar400()
     {
-        var request = new CriarCestaRequest("Inválida",
+        var request = new CriarCestaRequest("Invalida",
         [
             new("PETR4", 60m), new("VALE3", 40m)
         ]);
@@ -51,10 +51,10 @@ public class CestaControllerTests : IClassFixture<ApiFactory>
     [Fact]
     public async Task POST_CriarCesta_SomaDiferenteDe100_DeveRetornar400()
     {
-        var request = new CriarCestaRequest("Inválida",
+        var request = new CriarCestaRequest("Invalida",
         [
             new("PETR4", 20m), new("VALE3", 20m), new("ITUB4", 20m),
-            new("BBDC4", 20m), new("ABEV3", 10m) // soma = 90%
+            new("BBDC4", 20m), new("ABEV3", 10m)
         ]);
 
         var response = await _client.PostAsJsonAsync("/api/admin/cesta", request);
@@ -63,28 +63,33 @@ public class CestaControllerTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
-    public async Task GET_CestaAtiva_SemCesta_DeveRetornar400()
+    public async Task GET_CestaAtual_SemCesta_DeveRetornar400()
     {
-        // Fábrica isolada (sem cesta criada neste contexto)
         using var factory = new ApiFactory();
         var client = factory.CreateClient();
 
-        var response = await client.GetAsync("/api/admin/cesta/ativa");
+        var response = await client.GetAsync("/api/admin/cesta/atual");
 
-        // InvalidOperationException → 400 via middleware
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
-    public async Task GET_CestaAtiva_ComCestaCriada_DeveRetornar200()
+    public async Task GET_CestaAtual_ComCestaCriada_DeveRetornar200()
     {
         await _client.PostAsJsonAsync("/api/admin/cesta", RequestValida("Top Five Teste"));
 
-        var response = await _client.GetAsync("/api/admin/cesta/ativa");
+        var response = await _client.GetAsync("/api/admin/cesta/atual");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var body = await response.Content.ReadFromJsonAsync<CestaResponse>();
         body!.Ativa.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GET_CestaAtiva_RotaRemovida_DeveRetornar404()
+    {
+        var response = await _client.GetAsync("/api/admin/cesta/ativa");
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

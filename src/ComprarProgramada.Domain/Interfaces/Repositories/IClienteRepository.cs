@@ -7,6 +7,7 @@ public interface IClienteRepository
 {
     Task<Cliente?> ObterPorIdAsync(int id, CancellationToken ct = default);
     Task<Cliente?> ObterPorCpfAsync(Cpf cpf, CancellationToken ct = default);
+    Task<IReadOnlyList<Cliente>> ListarAsync(bool? ativo = null, string? nome = null, CancellationToken ct = default);
     Task<IReadOnlyList<Cliente>> ObterAtivosAsync(CancellationToken ct = default);
     Task<bool> ExisteCpfAsync(Cpf cpf, CancellationToken ct = default);
     Task AdicionarAsync(Cliente cliente, CancellationToken ct = default);

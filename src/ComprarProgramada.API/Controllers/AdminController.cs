@@ -38,7 +38,7 @@ public sealed class AdminController(
         return Ok(response);
     }
 
-    /// <summary>Retorna o histórico de todas as cestas Top Five (ativas e inativas).</summary>
+    /// <summary>Retorna o historico de todas as cestas Top Five (ativas e inativas).</summary>
     [HttpGet("cesta/historico")]
     [ProducesResponseType<IReadOnlyList<CestaResponse>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> ObterHistoricoCestas(CancellationToken ct)
@@ -64,8 +64,8 @@ public sealed class AdminController(
     }
 
     /// <summary>
-    /// RN-050: Rebalanceia carteiras cujo desvio de proporção supera o limiar informado.
-    /// O limiar padrão é 5 pontos percentuais.
+    /// RN-050: Rebalanceia carteiras cujo desvio de proporcao supera o limiar informado.
+    /// O limiar padrao e 5 pontos percentuais.
     /// </summary>
     [HttpPost("rebalanceamento/executar-desvio")]
     [ProducesResponseType<RebalanceamentoResponse>(StatusCodes.Status200OK)]
@@ -78,7 +78,7 @@ public sealed class AdminController(
         return Ok(response);
     }
 
-    /// <summary>Retorna os resíduos atuais da custódia da conta master.</summary>
+    /// <summary>Retorna os residuos atuais da custodia da conta master.</summary>
     [HttpGet("conta-master/custodia")]
     [ProducesResponseType<CustodiaMasterResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> ObterCustodiaMaster(CancellationToken ct)

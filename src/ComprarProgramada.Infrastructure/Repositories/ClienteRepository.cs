@@ -21,6 +21,29 @@ public class ClienteRepository : IClienteRepository
         await _context.Clientes
             .FirstOrDefaultAsync(c => c.Cpf == cpf, ct);
 
+    public async Task<IReadOnlyList<Cliente>> ListarAsync(
+        bool? ativo = null,
+        string? nome = null,
+        CancellationToken ct = default)
+    {
+        var query = _context.Clientes
+            .Include(c => c.ContaFilhote)
+            .AsQueryable();
+
+        if (ativo.HasValue)
+            query = query.Where(c => c.Ativo == ativo.Value);
+
+        if (!string.IsNullOrWhiteSpace(nome))
+        {
+            var termo = nome.Trim();
+            query = query.Where(c => c.Nome.Contains(termo));
+        }
+
+        return await query
+            .OrderBy(c => c.Nome)
+            .ToListAsync(ct);
+    }
+
     public async Task<IReadOnlyList<Cliente>> ObterAtivosAsync(CancellationToken ct = default) =>
         await _context.Clientes
             .Include(c => c.ContaFilhote)

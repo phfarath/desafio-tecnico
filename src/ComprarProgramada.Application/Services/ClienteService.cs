@@ -59,6 +59,25 @@ public sealed class ClienteService : IClienteService
             cliente.DataAdesao);
     }
 
+    public async Task<IReadOnlyList<ClienteResumoResponse>> ListarAsync(
+        bool? ativo = null,
+        string? nome = null,
+        CancellationToken ct = default)
+    {
+        var clientes = await _clientes.ListarAsync(ativo, nome, ct);
+
+        return clientes
+            .Select(c => new ClienteResumoResponse(
+                c.Id,
+                c.Nome,
+                MascararCpf(c.Cpf.Valor),
+                c.Ativo,
+                c.ValorMensal,
+                c.ContaFilhote?.NumeroConta ?? string.Empty,
+                c.DataAdesao))
+            .ToList();
+    }
+
     public async Task AlterarValorMensalAsync(
         int clienteId, AlterarValorMensalRequest request, CancellationToken ct = default)
     {
@@ -76,5 +95,14 @@ public sealed class ClienteService : IClienteService
 
         cliente.Desativar();
         await _uow.CommitAsync(ct);
+    }
+
+    private static string MascararCpf(string cpf)
+    {
+        var digitos = new string(cpf.Where(char.IsDigit).ToArray());
+        if (digitos.Length != 11)
+            return cpf;
+
+        return $"***.{digitos[3..6]}.{digitos[6..9]}-**";
     }
 }

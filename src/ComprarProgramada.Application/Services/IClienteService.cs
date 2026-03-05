@@ -5,6 +5,7 @@ namespace ComprarProgramada.Application.Services;
 public interface IClienteService
 {
     Task<AdesaoResponse> AderirAsync(AdesaoRequest request, CancellationToken ct = default);
+    Task<IReadOnlyList<ClienteResumoResponse>> ListarAsync(bool? ativo = null, string? nome = null, CancellationToken ct = default);
     Task AlterarValorMensalAsync(int clienteId, AlterarValorMensalRequest request, CancellationToken ct = default);
     Task DesativarAsync(int clienteId, CancellationToken ct = default);
 }

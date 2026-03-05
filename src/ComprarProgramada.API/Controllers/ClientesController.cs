@@ -12,7 +12,19 @@ public sealed class ClientesController(
     IClienteService clienteService,
     ICarteiraService carteiraService) : ControllerBase
 {
-    /// <summary>Realiza adesão de um novo cliente ao programa de compra programada.</summary>
+    /// <summary>Lista clientes com filtros opcionais por status e nome (CRIADA PARA FRONTEND).</summary>
+    [HttpGet]
+    [ProducesResponseType<IReadOnlyList<ClienteResumoResponse>>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> Listar(
+        [FromQuery] bool? ativo,
+        [FromQuery] string? nome,
+        CancellationToken ct)
+    {
+        var response = await clienteService.ListarAsync(ativo, nome, ct);
+        return Ok(response);
+    }
+
+    /// <summary>Realiza adesao de um novo cliente ao programa de compra programada.</summary>
     [HttpPost("adesao")]
     [ProducesResponseType<AdesaoResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -35,7 +47,7 @@ public sealed class ClientesController(
         return NoContent();
     }
 
-    /// <summary>Solicita a saída do cliente do programa de compra programada.</summary>
+    /// <summary>Solicita a saida do cliente do programa de compra programada.</summary>
     [HttpPost("{id:int}/saida")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
@@ -45,7 +57,7 @@ public sealed class ClientesController(
         return NoContent();
     }
 
-    /// <summary>Retorna a carteira atual de um cliente com posições e rentabilidade.</summary>
+    /// <summary>Retorna a carteira atual de um cliente com posicoes e rentabilidade.</summary>
     [HttpGet("{id:int}/carteira")]
     [ProducesResponseType<CarteiraResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
@@ -55,7 +67,7 @@ public sealed class ClientesController(
         return Ok(carteira);
     }
 
-    /// <summary>Retorna o histórico de aportes e a evolução da carteira de um cliente.</summary>
+    /// <summary>Retorna o historico de aportes e a evolucao da carteira de um cliente.</summary>
     [HttpGet("{id:int}/rentabilidade")]
     [ProducesResponseType<RentabilidadeResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]

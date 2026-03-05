@@ -5,8 +5,17 @@ using ComprarProgramada.Infrastructure.Initialization;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
+const string FrontendDevCorsPolicy = "frontend-dev";
 
 builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(FrontendDevCorsPolicy, policy =>
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -42,6 +51,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors(FrontendDevCorsPolicy);
 app.MapControllers();
 
 app.Run();

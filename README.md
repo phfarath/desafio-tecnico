@@ -1,21 +1,24 @@
-# Compra Programada de Ações — Itaú Corretora
+# Compra Programada de Acoes - Itau Corretora
 
-Sistema de compra programada de ações desenvolvido como desafio técnico.
+Sistema de compra programada de acoes desenvolvido como desafio tecnico.
 
-## Pré-requisitos
+## Pre-requisitos
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [Docker + Docker Compose](https://docs.docker.com/compose/)
+- .NET 10 SDK
+- Node.js 20+
+- npm 10+
+- Docker + Docker Compose (para MySQL + Kafka)
+- PowerShell 5+ (Windows nativo) ou Bash (Linux/macOS/WSL/Git Bash)
 
-## Como Rodar
+## Quick Start (Backend + Frontend)
 
-### 1. Subir infraestrutura (MySQL + Kafka)
+1. Suba a infraestrutura:
 
 ```bash
 docker-compose up -d
 ```
 
-### 2. Aplicar migrations e seed inicial
+2. Aplique migrations:
 
 ```bash
 dotnet ef database update \
@@ -23,142 +26,105 @@ dotnet ef database update \
   --startup-project src/ComprarProgramada.API
 ```
 
-O seed inicial cria automaticamente:
-- Conta master (número `0001-MASTER`)
-- Custódia master vazia
+3. Rode API + frontend com um comando:
 
-### 3. Arquivo de cotações COTAHIST (B3)
+Windows (PowerShell):
+```powershell
+.\run-dev.ps1
+```
 
-Baixe o arquivo diário do site da B3:
-`https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/series-historicas/`
+Linux/macOS/WSL/Git Bash:
+```bash
+./run-dev.sh
+```
 
-Salve na pasta `cotacoes/` com o nome original (ex: `COTAHIST_D20260305.TXT`).
+4. Abra no navegador:
 
-### 4. Rodar a API
+- Swagger API: `http://localhost:5079/swagger`
+- Frontend: `http://localhost:5173`
+
+## Scripts de execucao local
+
+### Windows nativo (PowerShell)
+
+O script [`run-dev.ps1`](./run-dev.ps1):
+
+- inicia a API em `http://localhost:5079`
+- inicia o frontend em `http://localhost:5173`
+- injeta `VITE_API_BASE_URL=http://localhost:5079` no processo do frontend
+- encerra os dois processos ao pressionar `Ctrl+C`
+
+Se o PowerShell bloquear execucao de scripts:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run-dev.ps1
+```
+
+### Linux/macOS/WSL/Git Bash
+
+O script [`run-dev.sh`](./run-dev.sh):
+
+- inicia a API em `http://localhost:5079`
+- inicia o frontend em `http://localhost:5173`
+- injeta `VITE_API_BASE_URL=http://localhost:5079` no processo do frontend
+- encerra os dois processos ao pressionar `Ctrl+C`
+
+## Rodar manualmente (alternativa)
+
+### API
 
 ```bash
-dotnet run --project src/ComprarProgramada.API
+dotnet run --project src/ComprarProgramada.API --urls "http://localhost:5079"
 ```
 
-Acesse o Swagger em: `http://localhost:5079/swagger`
+### Frontend
 
-### 5. Rodar o Worker (jobs Quartz)
+PowerShell:
+```powershell
+cd frontend
+npm install
+$env:VITE_API_BASE_URL="http://localhost:5079"
+npm run dev -- --host localhost --port 5173
+```
 
+Bash:
 ```bash
-dotnet run --project src/ComprarProgramada.Worker
+cd frontend
+npm install
+VITE_API_BASE_URL=http://localhost:5079 npm run dev -- --host localhost --port 5173
 ```
 
-O Worker executa o motor de compra automaticamente nos dias 5, 15 e 25 de cada mês.
-
----
-
-## Arquitetura
-
-O projeto segue **Clean Architecture + DDD**, organizado em 5 camadas:
-
-```
-Domain          → Entidades, Value Objects, Interfaces (zero dependências externas)
-Application     → Casos de uso, Services, DTOs
-Infrastructure  → EF Core, MySQL, COTAHIST parser, Kafka producer
-API             → Controllers REST + Swagger
-Worker          → Quartz scheduled jobs
-```
-
-### Diagrama de fluxo principal
-
-```
-Cliente adere → Cesta Top Five criada → Job dispara (dia 5/15/25)
-   → MotorCompra: lê cotações COTAHIST
-   → Compra lote padrão + fracionário na master
-   → Distribui proporcionalmente para filhotes
-   → Publica IR dedo-duro no Kafka
-   → Resíduos ficam na custódia master para próximo ciclo
-```
-
----
-
-## Decisões Técnicas
-
-### Quartz.NET para agendamento
-Jobs agendados nos dias 5, 15 e 25 de cada mês via cron expression.
-O Worker é um projeto separado do API para isolamento de responsabilidades.
-
-### Apache Kafka para eventos de IR
-Dois tópicos:
-- `ir-dedo-duro-compra` — IR de 0,005% sobre cada compra
-- `ir-venda-rebalanceamento` — IR de 20% sobre lucro em vendas > R$20.000/mês
-
-### COTAHIST (B3) como fonte de cotações
-Arquivo texto de campos fixos (245 chars/linha, ISO-8859-1).
-O parser filtra `CODBDI=02` (lote padrão) e `TPMERC=010` (mercado a vista).
-Preços vêm com 2 casas decimais implícitas (ex: `0000000003850` = R$ 38,50).
-
-### Truncamento de quantidades
-Quantidades de ações são sempre truncadas (`(int)(valor / preco)`), nunca arredondadas.
-Resíduos financeiros ficam na custódia master e são reutilizados na próxima compra.
-
-### Separação lote padrão / fracionário
-`OrdemCompraItem.Criar()` calcula automaticamente:
-- Lote padrão = `qtd / 100` lotes
-- Fracionário = `qtd % 100` ações
-
-### Rebalanceamento ao trocar a cesta
-Ao criar uma nova cesta Top Five:
-1. Vende ativos que saíram da cesta
-2. Rebalanceia tickers que permaneceram mas mudaram de percentual
-3. Compra novos tickers com o produto das vendas
-4. Publica IR sobre vendas quando total mensal > R$20.000
-
----
-
-## Endpoints Disponíveis
-
-Documentação completa via Swagger (`/swagger`).
+## Endpoints disponiveis
 
 ### Clientes
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| POST | `/api/clientes/adesao` | Adesão de novo cliente |
-| PUT | `/api/clientes/{id}/valor-mensal` | Alterar valor mensal de aporte |
-| DELETE | `/api/clientes/{id}` | Desativar cliente |
-| GET | `/api/clientes/{id}/carteira` | Carteira atual com posições e P&L |
-| GET | `/api/clientes/{id}/rentabilidade` | Histórico de aportes e evolução da carteira |
 
-### Administração
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| POST | `/api/admin/cesta` | Criar nova cesta Top Five |
-| GET | `/api/admin/cesta/ativa` | Retornar cesta ativa |
-| GET | `/api/admin/cesta/historico` | Histórico de todas as cestas |
-| POST | `/api/admin/rebalanceamento/executar` | Disparar rebalanceamento manualmente |
-| POST | `/api/admin/rebalanceamento/executar-desvio` | Rebalancear por desvio de proporção |
-| GET | `/api/admin/conta-master/custodia` | Visualizar custódia de resíduos da conta master |
+- `GET /api/clientes` (CRIADA PARA FRONTEND)
+- `POST /api/clientes/adesao`
+- `PUT /api/clientes/{id}/valor-mensal`
+- `POST /api/clientes/{id}/saida`
+- `GET /api/clientes/{id}/carteira`
+- `GET /api/clientes/{id}/rentabilidade`
+
+### Administracao
+
+- `POST /api/admin/cesta`
+- `GET /api/admin/cesta/atual`
+- `GET /api/admin/cesta/historico`
+- `POST /api/admin/rebalanceamento/executar`
+- `POST /api/admin/rebalanceamento/executar-desvio`
+- `GET /api/admin/conta-master/custodia`
 
 ### Motor
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| POST | `/api/motor/executar` | Executar motor de compra manualmente |
 
----
+- `POST /api/motor/executar-compra`
 
-## Como Executar os Testes
+## Testes
 
 ```bash
 dotnet test
 ```
 
-Os testes estão organizados em dois projetos:
+Projetos de teste:
 
-- `ComprarProgramada.UnitTests` — testes de Domain e Application Services (sem I/O)
-- `ComprarProgramada.IntegrationTests` — testes de API com WebApplicationFactory
-
-```bash
-# Somente testes unitários
-dotnet test tests/ComprarProgramada.UnitTests
-
-# Somente testes de integração
-dotnet test tests/ComprarProgramada.IntegrationTests
-
-# Com relatório de cobertura
-dotnet test --collect:"XPlat Code Coverage"
-```
+- `tests/ComprarProgramada.UnitTests`
+- `tests/ComprarProgramada.IntegrationTests`
