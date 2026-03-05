@@ -54,4 +54,14 @@ public sealed class ClientesController(
         var carteira = await carteiraService.ObterCarteiraAsync(id, ct);
         return Ok(carteira);
     }
+
+    /// <summary>Retorna o histórico de aportes e a evolução da carteira de um cliente.</summary>
+    [HttpGet("{id:int}/rentabilidade")]
+    [ProducesResponseType<RentabilidadeResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ObterRentabilidade(int id, CancellationToken ct)
+    {
+        var rentabilidade = await carteiraService.ObterRentabilidadeAsync(id, ct);
+        return Ok(rentabilidade);
+    }
 }

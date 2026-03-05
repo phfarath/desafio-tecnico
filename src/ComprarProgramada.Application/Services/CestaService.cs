@@ -49,6 +49,12 @@ public sealed class CestaService : ICestaService
         return MapearParaResponse(cesta);
     }
 
+    public async Task<IReadOnlyList<CestaResponse>> ObterHistoricoAsync(CancellationToken ct = default)
+    {
+        var cestas = await _cestas.ObterHistoricoAsync(ct);
+        return cestas.Select(MapearParaResponse).ToList();
+    }
+
     private static CestaResponse MapearParaResponse(CestaTopFive cesta) =>
         new(
             cesta.Id,

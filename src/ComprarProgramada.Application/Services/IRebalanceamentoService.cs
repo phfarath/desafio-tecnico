@@ -13,4 +13,12 @@ public interface IRebalanceamentoService
         int cestaAnteriorId,
         int novaCestaId,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// RN-050: Rebalanceia carteiras de clientes cujo desvio de proporção
+    /// em relação à cesta ativa supera o limiar informado (padrão: 5 pontos percentuais).
+    /// </summary>
+    Task<RebalanceamentoResponse> ExecutarPorDesvioAsync(
+        decimal limiarDesvioPercentual = 5m,
+        CancellationToken ct = default);
 }

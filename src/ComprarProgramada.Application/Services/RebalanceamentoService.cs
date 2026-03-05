@@ -54,7 +54,23 @@ public sealed class RebalanceamentoService : IRebalanceamentoService
         var tickersSaindo = tickersAnteriores.Except(tickersNovos).ToList();
         var tickersEntrando = tickersNovos.Except(tickersAnteriores).ToList();
 
-        if (tickersSaindo.Count == 0 && tickersEntrando.Count == 0)
+        // RN-049: tickers que permaneceram mas mudaram de percentual também precisam rebalancear
+        var tickersPermanecendo = tickersAnteriores.Intersect(tickersNovos).ToList();
+        var tickersMudandoPercentual = tickersPermanecendo
+            .Where(t =>
+            {
+                var itemAnterior = cestaAnterior.Itens.FirstOrDefault(i => i.Ticker == t);
+                var itemNovo = novaCesta.Itens.FirstOrDefault(i => i.Ticker == t);
+                return itemAnterior is not null && itemNovo is not null &&
+                       itemAnterior.FracaoDecimal != itemNovo.FracaoDecimal;
+            })
+            .ToList();
+
+        bool haNadaParaFazer = tickersSaindo.Count == 0
+                               && tickersEntrando.Count == 0
+                               && tickersMudandoPercentual.Count == 0;
+
+        if (haNadaParaFazer)
             return new RebalanceamentoResponse(0, 0, 0, 0, []);
 
         // Cotações de todos os tickers envolvidos
@@ -113,7 +129,65 @@ public sealed class RebalanceamentoService : IRebalanceamentoService
                 custodia.RemoverAtivos(ticker, qtd);
             }
 
-            // 2. Compra tickers novos com o produto das vendas
+            // 2. RN-049: Rebalanceia tickers que permaneceram mas mudaram de percentual
+            decimal totalComprasRebalanceamento = 0;
+
+            if (tickersMudandoPercentual.Count > 0)
+            {
+                // Calcula o valor total da carteira atual (todos os tickers novos que o cliente tem)
+                decimal valorCarteiraTotal = 0;
+                foreach (var ticker in tickersNovos)
+                {
+                    var item = custodia.ObterItem(ticker);
+                    if (item is null || item.Quantidade == 0) continue;
+
+                    cotacoesMap.TryGetValue(ticker.Valor, out var preco);
+                    if (preco == 0) preco = item.PrecoMedio;
+                    valorCarteiraTotal += item.Quantidade * preco;
+                }
+
+                foreach (var ticker in tickersMudandoPercentual)
+                {
+                    var item = custodia.ObterItem(ticker);
+                    if (item is null || item.Quantidade == 0) continue;
+
+                    cotacoesMap.TryGetValue(ticker.Valor, out var preco);
+                    if (preco == 0) preco = item.PrecoMedio;
+                    if (preco <= 0) continue;
+
+                    var novoItem = novaCesta.Itens.First(i => i.Ticker == ticker);
+                    var valorAlvo = valorCarteiraTotal * novoItem.FracaoDecimal;
+                    var valorAtual = item.Quantidade * preco;
+                    var diferenca = valorAtual - valorAlvo;
+
+                    if (diferenca > preco) // excesso: vender
+                    {
+                        var qtdVender = (int)(diferenca / preco);
+                        if (qtdVender <= 0 || qtdVender > item.Quantidade) continue;
+
+                        var valorVenda = qtdVender * preco;
+                        var lucro = valorVenda - qtdVender * item.PrecoMedio;
+
+                        vendasDetalhe.Add(new DetalheVendaItem(
+                            ticker.Valor, qtdVender, preco, item.PrecoMedio, lucro));
+
+                        totalVendasCliente += valorVenda;
+                        lucroLiquidoCliente += lucro;
+
+                        custodia.RemoverAtivos(ticker, qtdVender);
+                    }
+                    else if (diferenca < -preco) // déficit: comprar
+                    {
+                        var qtdComprar = (int)((-diferenca) / preco);
+                        if (qtdComprar <= 0) continue;
+
+                        custodia.AdicionarAtivos(ticker, qtdComprar, preco);
+                        totalComprasRebalanceamento += qtdComprar * preco;
+                    }
+                }
+            }
+
+            // 3. Compra tickers novos com o produto das vendas
             if (totalVendasCliente > 0 && tickersEntrando.Count > 0 && pesoNovosTotal > 0)
             {
                 foreach (var cestaItem in novaCesta.Itens
@@ -132,7 +206,151 @@ public sealed class RebalanceamentoService : IRebalanceamentoService
                 }
             }
 
-            // 3. IR sobre vendas > R$20.000
+            // 4. IR sobre vendas > R$20.000
+            bool irPublicado = false;
+            decimal valorIr = 0;
+
+            if (totalVendasCliente > 20_000m && lucroLiquidoCliente > 0)
+            {
+                valorIr = lucroLiquidoCliente * 0.20m;
+
+                var msg = IrVendaMessage.Criar(
+                    clienteId: cliente.Id,
+                    cpf: cliente.Cpf.Valor,
+                    mesReferencia: DateTime.UtcNow.ToString("yyyy-MM"),
+                    totalVendasMes: totalVendasCliente,
+                    lucroLiquido: lucroLiquidoCliente,
+                    valorIr: valorIr,
+                    detalhes: vendasDetalhe);
+
+                await _eventos.PublicarAsync(
+                    _topicoIrVenda,
+                    $"{cliente.Id}-{DateTime.UtcNow:yyyyMM}",
+                    msg,
+                    ct);
+
+                irPublicado = true;
+            }
+
+            detalhes.Add(new RebalanceamentoClienteResponse(
+                cliente.Id,
+                cliente.Nome,
+                totalVendasCliente,
+                lucroLiquidoCliente,
+                irPublicado,
+                valorIr));
+        }
+
+        await _uow.CommitAsync(ct);
+
+        return new RebalanceamentoResponse(
+            TotalClientes: clientes.Count,
+            TotalClientesComVendas: detalhes.Count(d => d.TotalVendas > 0),
+            TotalVendasGeral: detalhes.Sum(d => d.TotalVendas),
+            TotalIrPublicado: detalhes.Sum(d => d.ValorIr),
+            Detalhes: detalhes);
+    }
+
+    /// <summary>
+    /// RN-050: Rebalanceia carteiras cujo desvio de proporção em relação à cesta ativa
+    /// supera o limiar informado (em pontos percentuais).
+    /// </summary>
+    public async Task<RebalanceamentoResponse> ExecutarPorDesvioAsync(
+        decimal limiarDesvioPercentual = 5m,
+        CancellationToken ct = default)
+    {
+        var cestaAtiva = await _cestas.ObterAtivaAsync(ct)
+            ?? throw new InvalidOperationException("Nenhuma cesta Top Five ativa encontrada.");
+
+        var tickers = cestaAtiva.Tickers.ToList();
+        var cotacoesMap = await _cotacoes.ObterCotacoesAsync(tickers, ct);
+
+        var clientes = await _clientes.ObterAtivosAsync(ct);
+        var detalhes = new List<RebalanceamentoClienteResponse>();
+
+        foreach (var cliente in clientes)
+        {
+            if (cliente.ContaFilhote is null) continue;
+
+            var custodia = await _custodiasFilhote.ObterPorContaFilhoteAsync(
+                cliente.ContaFilhote.Id, ct);
+
+            if (custodia is null) continue;
+
+            // Calcula valor total da carteira
+            decimal valorCarteiraTotal = 0;
+            foreach (var ticker in tickers)
+            {
+                var item = custodia.ObterItem(ticker);
+                if (item is null || item.Quantidade == 0) continue;
+
+                cotacoesMap.TryGetValue(ticker.Valor, out var preco);
+                if (preco == 0) preco = item.PrecoMedio;
+                valorCarteiraTotal += item.Quantidade * preco;
+            }
+
+            if (valorCarteiraTotal == 0) continue;
+
+            // Verifica se algum ticker tem desvio acima do limiar
+            bool temDesvio = cestaAtiva.Itens.Any(cestaItem =>
+            {
+                var item = custodia.ObterItem(cestaItem.Ticker);
+                cotacoesMap.TryGetValue(cestaItem.Ticker.Valor, out var preco);
+                if (preco == 0) preco = item?.PrecoMedio ?? 0;
+
+                var qtd = item?.Quantidade ?? 0;
+                var valorAtual = qtd * preco;
+                var pesoAtual = valorCarteiraTotal > 0 ? (valorAtual / valorCarteiraTotal) * 100m : 0m;
+                var pesoAlvo = cestaItem.FracaoDecimal * 100m;
+
+                return Math.Abs(pesoAtual - pesoAlvo) >= limiarDesvioPercentual;
+            });
+
+            if (!temDesvio) continue;
+
+            var vendasDetalhe = new List<DetalheVendaItem>();
+            decimal totalVendasCliente = 0;
+            decimal lucroLiquidoCliente = 0;
+
+            // Rebalanceia cada ticker com desvio
+            foreach (var cestaItem in cestaAtiva.Itens)
+            {
+                var item = custodia.ObterItem(cestaItem.Ticker);
+                cotacoesMap.TryGetValue(cestaItem.Ticker.Valor, out var preco);
+                if (preco == 0) preco = item?.PrecoMedio ?? 0;
+                if (preco <= 0) continue;
+
+                var valorAlvo = valorCarteiraTotal * cestaItem.FracaoDecimal;
+                var qtdAtual = item?.Quantidade ?? 0;
+                var valorAtual = qtdAtual * preco;
+                var diferenca = valorAtual - valorAlvo;
+
+                if (diferenca > preco && qtdAtual > 0) // excesso: vender
+                {
+                    var qtdVender = (int)(diferenca / preco);
+                    if (qtdVender <= 0 || qtdVender > qtdAtual) continue;
+
+                    var valorVenda = qtdVender * preco;
+                    var lucro = valorVenda - qtdVender * item!.PrecoMedio;
+
+                    vendasDetalhe.Add(new DetalheVendaItem(
+                        cestaItem.Ticker.Valor, qtdVender, preco, item.PrecoMedio, lucro));
+
+                    totalVendasCliente += valorVenda;
+                    lucroLiquidoCliente += lucro;
+
+                    custodia.RemoverAtivos(cestaItem.Ticker, qtdVender);
+                }
+                else if (diferenca < -preco) // déficit: comprar
+                {
+                    var qtdComprar = (int)((-diferenca) / preco);
+                    if (qtdComprar <= 0) continue;
+
+                    custodia.AdicionarAtivos(cestaItem.Ticker, qtdComprar, preco);
+                }
+            }
+
+            // IR sobre vendas > R$20.000
             bool irPublicado = false;
             decimal valorIr = 0;
 
