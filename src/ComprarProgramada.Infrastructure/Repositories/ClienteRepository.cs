@@ -23,6 +23,7 @@ public class ClienteRepository : IClienteRepository
 
     public async Task<IReadOnlyList<Cliente>> ObterAtivosAsync(CancellationToken ct = default) =>
         await _context.Clientes
+            .Include(c => c.ContaFilhote)
             .Where(c => c.Ativo)
             .ToListAsync(ct);
 

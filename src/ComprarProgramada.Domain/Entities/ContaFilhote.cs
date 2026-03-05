@@ -17,6 +17,18 @@ public class ContaFilhote : Entity
 
     protected ContaFilhote() { }
 
+    public static ContaFilhote Criar(Cliente cliente, int sequencial)
+    {
+        ArgumentNullException.ThrowIfNull(cliente);
+
+        return new ContaFilhote
+        {
+            Cliente = cliente,
+            NumeroConta = $"FLH-{sequencial:D6}",
+            DataCriacao = DateTime.UtcNow
+        };
+    }
+
     public static ContaFilhote Criar(int clienteId, int sequencial)
     {
         return new ContaFilhote
