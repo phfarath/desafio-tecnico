@@ -25,14 +25,14 @@ public sealed class AdminController(
     public async Task<IActionResult> CriarCesta([FromBody] CriarCestaRequest request, CancellationToken ct)
     {
         var response = await cestaService.CriarCestaAsync(request, ct);
-        return CreatedAtAction(nameof(ObterCestaAtiva), null, response);
+        return CreatedAtAction(nameof(ObterCestaAtual), null, response);
     }
 
     /// <summary>Retorna a cesta Top Five atualmente ativa.</summary>
-    [HttpGet("cesta/ativa")]
+    [HttpGet("cesta/atual")]
     [ProducesResponseType<CestaResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ObterCestaAtiva(CancellationToken ct)
+    public async Task<IActionResult> ObterCestaAtual(CancellationToken ct)
     {
         var response = await cestaService.ObterCestaAtivaAsync(ct);
         return Ok(response);
