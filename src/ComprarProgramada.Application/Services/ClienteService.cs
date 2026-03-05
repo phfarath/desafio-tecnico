@@ -36,14 +36,14 @@ public sealed class ClienteService : IClienteService
 
         // 2. Cria a conta filhote (numeração gerada no repositório)
         var sequencial = await _contasFilhote.ObterProximoSequencialAsync(ct);
-        var conta = ContaFilhote.Criar(cliente.Id, sequencial);
-        await _contasFilhote.AdicionarAsync(conta, ct);
+        var conta = ContaFilhote.Criar(cliente, sequencial);
 
         // 3. Associa conta ao cliente
         cliente.AssociarContaFilhote(conta);
+        await _contasFilhote.AdicionarAsync(conta, ct);
 
         // 4. Cria a custódia filhote
-        var custodia = CustodiaFilhote.Criar(conta.Id);
+        var custodia = CustodiaFilhote.Criar(conta);
         await _custodiasFilhote.AdicionarAsync(custodia, ct);
 
         await _uow.CommitAsync(ct);

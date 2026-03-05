@@ -67,6 +67,15 @@ public sealed class RebalanceamentoService : IRebalanceamentoService
             .Sum(i => i.FracaoDecimal);
 
         var clientes = await _clientes.ObterAtivosAsync(ct);
+        var clientesSemConta = clientes
+            .Where(c => c.ContaFilhote is null)
+            .Select(c => c.Id)
+            .ToList();
+
+        if (clientesSemConta.Count > 0)
+            throw new InvalidOperationException(
+                $"Clientes ativos sem conta filhote associada: {string.Join(", ", clientesSemConta)}.");
+
         var detalhes = new List<RebalanceamentoClienteResponse>();
 
         foreach (var cliente in clientes)

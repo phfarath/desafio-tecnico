@@ -20,6 +20,13 @@ public class CustodiaFilhote : Entity
 
     protected CustodiaFilhote() { }
 
+    public static CustodiaFilhote Criar(ContaFilhote contaFilhote)
+    {
+        ArgumentNullException.ThrowIfNull(contaFilhote);
+
+        return new CustodiaFilhote { ContaFilhote = contaFilhote };
+    }
+
     public static CustodiaFilhote Criar(int contaFilhoteId)
     {
         return new CustodiaFilhote { ContaFilhoteId = contaFilhoteId };

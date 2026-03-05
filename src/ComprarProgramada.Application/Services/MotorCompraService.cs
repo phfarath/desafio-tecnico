@@ -61,6 +61,15 @@ public sealed class MotorCompraService : IMotorCompraService
         if (!clientes.Any())
             throw new InvalidOperationException("Nenhum cliente ativo para executar a compra.");
 
+        var clientesSemConta = clientes
+            .Where(c => c.ContaFilhote is null)
+            .Select(c => c.Id)
+            .ToList();
+
+        if (clientesSemConta.Count > 0)
+            throw new InvalidOperationException(
+                $"Clientes ativos sem conta filhote associada: {string.Join(", ", clientesSemConta)}.");
+
         var cesta = await _cestas.ObterAtivaAsync(ct)
             ?? throw new InvalidOperationException("Nenhuma cesta Top Five ativa.");
 

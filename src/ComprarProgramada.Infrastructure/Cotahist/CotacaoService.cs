@@ -12,16 +12,18 @@ namespace ComprarProgramada.Infrastructure.Cotahist;
 /// </summary>
 public sealed class CotacaoService : ICotacaoService
 {
-    private readonly string _pastaCotacoes;
+    private readonly string _cotacoesPathConfig;
     private readonly ILogger<CotacaoService> _logger;
 
     // Cache: chave = "TICKER" (em maiúsculas), valor = preço de fechamento
     private Dictionary<string, decimal>? _cache;
-    private string? _arquivoCacheado;
+    private string? _cachedFile;
 
-    public CotacaoService(IConfiguration configuration, ILogger<CotacaoService> logger)
+    public CotacaoService(
+        IConfiguration configuration, 
+        ILogger<CotacaoService> logger)
     {
-        _pastaCotacoes = configuration["CotacoesPath"] ?? "cotacoes";
+        _cotacoesPathConfig = configuration["CotacoesPath"] ?? "cotacoes";
         _logger = logger;
     }
 
@@ -31,7 +33,7 @@ public sealed class CotacaoService : ICotacaoService
 
         if (!cache.TryGetValue(ticker.Valor, out var preco))
             throw new InvalidOperationException(
-                $"Cotação não encontrada para o ticker '{ticker.Valor}' no arquivo '{_arquivoCacheado}'.");
+                $"Cotação não encontrada para o ticker '{ticker.Valor}' no arquivo '{_cachedFile}'.");
 
         return Task.FromResult(preco);
     }
@@ -55,7 +57,7 @@ public sealed class CotacaoService : ICotacaoService
         if (naoEncontrados.Count > 0)
             throw new InvalidOperationException(
                 $"Cotações não encontradas para: {string.Join(", ", naoEncontrados)} " +
-                $"no arquivo '{_arquivoCacheado}'.");
+                $"no arquivo '{_cachedFile}'.");
 
         return Task.FromResult<IDictionary<string, decimal>>(resultado);
     }
@@ -67,7 +69,7 @@ public sealed class CotacaoService : ICotacaoService
         var arquivo = ObterArquivoMaisRecente();
 
         // Reusa o cache se o arquivo não mudou
-        if (_cache is not null && _arquivoCacheado == arquivo)
+        if (_cache is not null && _cachedFile == arquivo)
             return _cache;
 
         _logger.LogInformation("Carregando cotações de {Arquivo}", arquivo);
@@ -77,7 +79,7 @@ public sealed class CotacaoService : ICotacaoService
             .GroupBy(c => c.Ticker)
             .ToDictionary(g => g.Key, g => g.First().PrecoFechamento);
 
-        _arquivoCacheado = arquivo;
+        _cachedFile = arquivo;
 
         _logger.LogInformation("Cache carregado: {Count} tickers", _cache.Count);
 
@@ -86,18 +88,50 @@ public sealed class CotacaoService : ICotacaoService
 
     private string ObterArquivoMaisRecente()
     {
-        if (!Directory.Exists(_pastaCotacoes))
-            throw new DirectoryNotFoundException(
-                $"Pasta de cotações não encontrada: '{_pastaCotacoes}'. " +
+        var pastaCotacoes = ResolverPastaCotacoes()
+            ?? throw new DirectoryNotFoundException(
+                $"Pasta de cotacoes nao encontrada para 'CotacoesPath={_cotacoesPathConfig}'. " +
+                $"Caminhos tentados: {string.Join(", ", ObterCaminhosCandidatos())}. " +
                 "Configure 'CotacoesPath' no appsettings.json e adicione o arquivo COTAHIST_D*.TXT.");
 
         var arquivo = Directory
-            .GetFiles(_pastaCotacoes, "COTAHIST_D*.TXT")
+            .GetFiles(pastaCotacoes, "COTAHIST_D*.TXT")
             .OrderByDescending(f => f)
             .FirstOrDefault()
             ?? throw new FileNotFoundException(
-                $"Nenhum arquivo COTAHIST_D*.TXT encontrado em '{_pastaCotacoes}'.");
+                $"Nenhum arquivo COTAHIST_D*.TXT encontrado em '{pastaCotacoes}'.");
 
         return arquivo;
+    }
+
+    private string? ResolverPastaCotacoes()
+    {
+        foreach (var caminho in ObterCaminhosCandidatos())
+        {
+            if (Directory.Exists(caminho))
+                return caminho;
+        }
+
+        return null;
+    }
+
+    private IEnumerable<string> ObterCaminhosCandidatos()
+    {
+        if (Path.IsPathRooted(_cotacoesPathConfig))
+        {
+            yield return Path.GetFullPath(_cotacoesPathConfig);
+            yield break;
+        }
+
+        var currentDirectory = Directory.GetCurrentDirectory();
+        yield return Path.GetFullPath(Path.Combine(currentDirectory, _cotacoesPathConfig));
+        yield return Path.GetFullPath(Path.Combine(currentDirectory, "..", _cotacoesPathConfig));
+        yield return Path.GetFullPath(Path.Combine(currentDirectory, "..", "..", _cotacoesPathConfig));
+
+        var baseDirectory = AppContext.BaseDirectory;
+        yield return Path.GetFullPath(Path.Combine(baseDirectory, _cotacoesPathConfig));
+        yield return Path.GetFullPath(Path.Combine(baseDirectory, "..", "..", "..", _cotacoesPathConfig));
+        yield return Path.GetFullPath(Path.Combine(baseDirectory, "..", "..", "..", "..", _cotacoesPathConfig));
+        yield return Path.GetFullPath(Path.Combine(baseDirectory, "..", "..", "..", "..", "..", _cotacoesPathConfig));
     }
 }

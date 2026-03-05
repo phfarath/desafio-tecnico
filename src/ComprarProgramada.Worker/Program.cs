@@ -1,5 +1,6 @@
 using ComprarProgramada.Application;
 using ComprarProgramada.Infrastructure;
+using ComprarProgramada.Infrastructure.Initialization;
 using ComprarProgramada.Worker.Jobs;
 using Quartz;
 
@@ -26,4 +27,5 @@ builder.Services.AddQuartz(q =>
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var host = builder.Build();
-host.Run();
+await host.Services.EnsureSeedDataAsync();
+await host.RunAsync();

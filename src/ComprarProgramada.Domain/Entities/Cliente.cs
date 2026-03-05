@@ -64,10 +64,16 @@ public class Cliente : Entity
 
     public void AssociarContaFilhote(ContaFilhote conta)
     {
+        ArgumentNullException.ThrowIfNull(conta);
+
         if (ContaFilhote is not null)
         {
-            // Idempotente: associar a mesma conta novamente é permitido
-            if (ReferenceEquals(ContaFilhote, conta)) return;
+            var mesmaInstancia = ReferenceEquals(ContaFilhote, conta);
+            var mesmoIdPersistido = ContaFilhote.Id != 0 && ContaFilhote.Id == conta.Id;
+
+            if (mesmaInstancia || mesmoIdPersistido)
+                return;
+
             throw new DomainException("Cliente já possui uma conta gráfica associada.");
         }
 
