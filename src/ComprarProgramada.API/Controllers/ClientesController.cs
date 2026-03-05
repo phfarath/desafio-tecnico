@@ -35,11 +35,11 @@ public sealed class ClientesController(
         return NoContent();
     }
 
-    /// <summary>Desativa um cliente (saída do programa).</summary>
-    [HttpDelete("{id:int}")]
+    /// <summary>Solicita a saída do cliente do programa de compra programada.</summary>
+    [HttpPost("{id:int}/saida")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Desativar(int id, CancellationToken ct)
+    public async Task<IActionResult> Saida(int id, CancellationToken ct)
     {
         await clienteService.DesativarAsync(id, ct);
         return NoContent();
@@ -53,5 +53,15 @@ public sealed class ClientesController(
     {
         var carteira = await carteiraService.ObterCarteiraAsync(id, ct);
         return Ok(carteira);
+    }
+
+    /// <summary>Retorna o histórico de aportes e a evolução da carteira de um cliente.</summary>
+    [HttpGet("{id:int}/rentabilidade")]
+    [ProducesResponseType<RentabilidadeResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ObterRentabilidade(int id, CancellationToken ct)
+    {
+        var rentabilidade = await carteiraService.ObterRentabilidadeAsync(id, ct);
+        return Ok(rentabilidade);
     }
 }

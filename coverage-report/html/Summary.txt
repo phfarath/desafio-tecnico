@@ -1,0 +1,111 @@
+Summary
+  Generated on: 3/4/2026 - 2:47:28 PM
+  Coverage date: 3/4/2026 - 2:47:08 PM - 3/4/2026 - 2:47:09 PM
+  Parser: MultiReport (2x Cobertura)
+  Assemblies: 4
+  Classes: 83
+  Files: 74
+  Line coverage: 29.6%
+  Covered lines: 1125
+  Uncovered lines: 2669
+  Coverable lines: 3794
+  Total lines: 5337
+  Branch coverage: 21.4% (107 of 498)
+  Covered branches: 107
+  Total branches: 498
+  Method coverage: 40.2% (193 of 480)
+  Full method coverage: 37.5% (180 of 480)
+  Covered methods: 193
+  Fully covered methods: 180
+  Total methods: 480
+
+ComprarProgramada.API                                                                            18.5%
+  ComprarProgramada.API.Controllers.AdminController                                              73.3%
+  ComprarProgramada.API.Controllers.ClientesController                                           78.9%
+  ComprarProgramada.API.Controllers.MotorController                                                 0%
+  ComprarProgramada.API.Middleware.ExceptionHandlerMiddleware                                      97%
+  Microsoft.AspNetCore.OpenApi.Generated                                                            0%
+  Program                                                                                         100%
+  System.Runtime.CompilerServices                                                                   0%
+
+ComprarProgramada.Application                                                                    48.8%
+  ComprarProgramada.Application.DependencyInjection                                               100%
+  ComprarProgramada.Application.DTOs.Carteira.CarteiraResponse                                      0%
+  ComprarProgramada.Application.DTOs.Carteira.PosicaoItem                                           0%
+  ComprarProgramada.Application.DTOs.Cesta.CestaItemRequest                                       100%
+  ComprarProgramada.Application.DTOs.Cesta.CestaItemResponse                                      100%
+  ComprarProgramada.Application.DTOs.Cesta.CestaResponse                                          100%
+  ComprarProgramada.Application.DTOs.Cesta.CriarCestaRequest                                      100%
+  ComprarProgramada.Application.DTOs.Cliente.AdesaoRequest                                        100%
+  ComprarProgramada.Application.DTOs.Cliente.AdesaoResponse                                       100%
+  ComprarProgramada.Application.DTOs.Cliente.AlterarValorMensalRequest                            100%
+  ComprarProgramada.Application.DTOs.Motor.ExecutarCompraResponse                                   0%
+  ComprarProgramada.Application.DTOs.Motor.ItemCompradoResponse                                     0%
+  ComprarProgramada.Application.DTOs.Motor.ResidualMasterResponse                                   0%
+  ComprarProgramada.Application.DTOs.Rebalanceamento.RebalanceamentoClienteResponse              71.4%
+  ComprarProgramada.Application.DTOs.Rebalanceamento.RebalanceamentoResponse                     83.3%
+  ComprarProgramada.Application.Events.DetalheVendaItem                                          33.3%
+  ComprarProgramada.Application.Events.IrDedoDuroMessage                                            0%
+  ComprarProgramada.Application.Events.IrVendaMessage                                              59%
+  ComprarProgramada.Application.Services.CarteiraService                                           16%
+  ComprarProgramada.Application.Services.CestaService                                             100%
+  ComprarProgramada.Application.Services.ClienteService                                           100%
+  ComprarProgramada.Application.Services.MotorCompraService                                         0%
+  ComprarProgramada.Application.Services.RebalanceamentoService                                   100%
+
+ComprarProgramada.Domain                                                                         46.3%
+  ComprarProgramada.Domain.Entities.Base.Entity                                                   100%
+  ComprarProgramada.Domain.Entities.CestaItem                                                      80%
+  ComprarProgramada.Domain.Entities.CestaTopFive                                                 88.6%
+  ComprarProgramada.Domain.Entities.Cliente                                                      96.2%
+  ComprarProgramada.Domain.Entities.ContaFilhote                                                 85.7%
+  ComprarProgramada.Domain.Entities.ContaMaster                                                     0%
+  ComprarProgramada.Domain.Entities.CustodiaFilhote                                              93.3%
+  ComprarProgramada.Domain.Entities.CustodiaFilhoteItem                                            80%
+  ComprarProgramada.Domain.Entities.CustodiaMaster                                                  0%
+  ComprarProgramada.Domain.Entities.CustodiaMasterItem                                              0%
+  ComprarProgramada.Domain.Entities.Distribuicao                                                    0%
+  ComprarProgramada.Domain.Entities.DistribuicaoItem                                                0%
+  ComprarProgramada.Domain.Entities.OrdemCompra                                                     0%
+  ComprarProgramada.Domain.Entities.OrdemCompraItem                                                 0%
+  ComprarProgramada.Domain.Exceptions.DomainException                                              50%
+  ComprarProgramada.Domain.ValueObjects.Cpf                                                        70%
+  ComprarProgramada.Domain.ValueObjects.Email                                                      75%
+  ComprarProgramada.Domain.ValueObjects.Ticker                                                   71.4%
+
+ComprarProgramada.Infrastructure                                                                 24.6%
+  ComprarProgramada.Infrastructure.Cotahist.CotacaoB3                                               0%
+  ComprarProgramada.Infrastructure.Cotahist.CotacaoService                                          0%
+  ComprarProgramada.Infrastructure.Cotahist.CotahistParser                                          0%
+  ComprarProgramada.Infrastructure.DependencyInjection                                             80%
+  ComprarProgramada.Infrastructure.Messaging.KafkaProducer                                          0%
+  ComprarProgramada.Infrastructure.Messaging.KafkaSettings                                          0%
+  ComprarProgramada.Infrastructure.Messaging.Messages.DetalheVendaItem                              0%
+  ComprarProgramada.Infrastructure.Messaging.Messages.IrDedoDuroMessage                             0%
+  ComprarProgramada.Infrastructure.Messaging.Messages.IrVendaMessage                                0%
+  ComprarProgramada.Infrastructure.Migrations.AppDbContextModelSnapshot                             0%
+  ComprarProgramada.Infrastructure.Migrations.InitialCreate                                         0%
+  ComprarProgramada.Infrastructure.Persistence                                                   96.7%
+  ComprarProgramada.Infrastructure.Persistence.AppDbContext                                      60.8%
+  ComprarProgramada.Infrastructure.Persistence.Configurations.CestaItemConfiguration              100%
+  ComprarProgramada.Infrastructure.Persistence.Configurations.CestaTopFiveConfiguration           100%
+  ComprarProgramada.Infrastructure.Persistence.Configurations.ClienteConfiguration                100%
+  ComprarProgramada.Infrastructure.Persistence.Configurations.ContaFilhoteConfiguration           100%
+  ComprarProgramada.Infrastructure.Persistence.Configurations.ContaMasterConfiguration            100%
+  ComprarProgramada.Infrastructure.Persistence.Configurations.CustodiaFilhoteConfiguration        100%
+  ComprarProgramada.Infrastructure.Persistence.Configurations.CustodiaFilhoteItemConfiguration    100%
+  ComprarProgramada.Infrastructure.Persistence.Configurations.CustodiaMasterConfiguration         100%
+  ComprarProgramada.Infrastructure.Persistence.Configurations.CustodiaMasterItemConfiguration     100%
+  ComprarProgramada.Infrastructure.Persistence.Configurations.DistribuicaoConfiguration           100%
+  ComprarProgramada.Infrastructure.Persistence.Configurations.DistribuicaoItemConfiguration       100%
+  ComprarProgramada.Infrastructure.Persistence.Configurations.OrdemCompraConfiguration            100%
+  ComprarProgramada.Infrastructure.Persistence.Configurations.OrdemCompraItemConfiguration        100%
+  ComprarProgramada.Infrastructure.Persistence.UnitOfWork                                         100%
+  ComprarProgramada.Infrastructure.Repositories.CestaTopFiveRepository                             50%
+  ComprarProgramada.Infrastructure.Repositories.ClienteRepository                                43.7%
+  ComprarProgramada.Infrastructure.Repositories.ContaFilhoteRepository                             23%
+  ComprarProgramada.Infrastructure.Repositories.ContaMasterRepository                               0%
+  ComprarProgramada.Infrastructure.Repositories.CustodiaFilhoteRepository                        22.2%
+  ComprarProgramada.Infrastructure.Repositories.CustodiaMasterRepository                            0%
+  ComprarProgramada.Infrastructure.Repositories.DistribuicaoRepository                              0%
+  ComprarProgramada.Infrastructure.Repositories.OrdemCompraRepository                               0%

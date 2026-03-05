@@ -1,4 +1,4 @@
-using ComprarProgramada.Domain.Entities;
+﻿using ComprarProgramada.Domain.Entities;
 using ComprarProgramada.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

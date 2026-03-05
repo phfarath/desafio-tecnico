@@ -6,9 +6,9 @@ using Microsoft.Extensions.Logging;
 namespace ComprarProgramada.Infrastructure.Cotahist;
 
 /// <summary>
-/// Implements <see cref="ICotacaoService"/> reading the latest COTAHIST file
-/// from the directory configured in "CotacoesPath" (default: "cotacoes").
-/// Keeps an in-memory cache to avoid re-reading the file.
+/// Implementa <see cref="ICotacaoService"/> lendo o arquivo COTAHIST mais recente
+/// da pasta configurada em "CotacoesPath" (padrão: "cotacoes/").
+/// Mantém cache em memória (por execução) para evitar re-leitura do arquivo.
 /// </summary>
 public sealed class CotacaoService : ICotacaoService
 {
@@ -20,7 +20,7 @@ public sealed class CotacaoService : ICotacaoService
     private string? _cachedFile;
 
     public CotacaoService(
-        IConfiguration configuration,
+        IConfiguration configuration, 
         ILogger<CotacaoService> logger)
     {
         _cotacoesPathConfig = configuration["CotacoesPath"] ?? "cotacoes";
@@ -33,7 +33,7 @@ public sealed class CotacaoService : ICotacaoService
 
         if (!cache.TryGetValue(ticker.Valor, out var preco))
             throw new InvalidOperationException(
-                $"Cotacao nao encontrada para ticker '{ticker.Valor}' no arquivo '{_cachedFile}'.");
+                $"Cotação não encontrada para o ticker '{ticker.Valor}' no arquivo '{_cachedFile}'.");
 
         return Task.FromResult(preco);
     }
@@ -56,7 +56,8 @@ public sealed class CotacaoService : ICotacaoService
 
         if (naoEncontrados.Count > 0)
             throw new InvalidOperationException(
-                $"Cotacoes nao encontradas para: {string.Join(", ", naoEncontrados)} no arquivo '{_cachedFile}'.");
+                $"Cotações não encontradas para: {string.Join(", ", naoEncontrados)} " +
+                $"no arquivo '{_cachedFile}'.");
 
         return Task.FromResult<IDictionary<string, decimal>>(resultado);
     }
@@ -65,6 +66,7 @@ public sealed class CotacaoService : ICotacaoService
     {
         var arquivo = ObterArquivoMaisRecente();
 
+        // Reusa o cache se o arquivo não mudou
         if (_cache is not null && _cachedFile == arquivo)
             return _cache;
 
